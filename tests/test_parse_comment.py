@@ -69,3 +69,13 @@ def test_parse_many_top_level_comments_without_recursion_error():
     assert repaired == {"key": "value"}
     assert len(logs) == comment_count
     assert all(log["text"] == "Found line comment: # comment, ignoring" for log in logs)
+
+
+def test_parse_comment_between_colon_and_value():
+    assert repair_json('{"a": /* comment */ 1}') == '{"a": 1}'
+    assert repair_json('{"a": // comment\n "x", "b": 2}') == '{"a": "x", "b": 2}'
+    assert repair_json('{"a": # comment\n true}') == '{"a": true}'
+    assert repair_json('{"a": /* comment */ {"b": 1}}') == '{"a": {"b": 1}}'
+    assert repair_json('{"a": /* comment */ [1, 2]}') == '{"a": [1, 2]}'
+    assert repair_json('{"a": /* one */ /* two */ 2, "b": 3}') == '{"a": 2, "b": 3}'
+    assert repair_json('{"a": /* comment */}') == '{"a": ""}'

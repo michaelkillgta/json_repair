@@ -304,6 +304,12 @@ def _parse_object_value(
     try:
         self.skip_whitespaces()
         char = self.get_char_at()
+        # Skip comments between the colon and the value (`"a": /* c */ 1`)
+        # so they don't swallow the value itself.
+        while char == "#" or (char == "/" and self.get_char_at(1) in ["/", "*"]):
+            self.parse_comment()
+            self.skip_whitespaces()
+            char = self.get_char_at()
         if char in [",", "}"]:
             self.log(
                 f"While parsing an object value we found a stray {char}, ignoring it",
